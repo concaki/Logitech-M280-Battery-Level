@@ -3,10 +3,7 @@ name: Build
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
-  release:
-    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -34,11 +31,21 @@ jobs:
             m280bat.exe
             m280bat.exe.sha256
 
+      - name: Read version
+        id: ver
+        run: echo "tag=v$(tr -d ' \r\n' < VERSION)" >> "$GITHUB_OUTPUT"
+
       - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           files: |
             m280bat.exe
             m280bat.exe.sha256
-          generate_release_notes: true
+          body: |
+            Baixe o **m280bat.exe** abaixo e veja as instruções no [README](https://github.com/${{ github.repository }}#português).
+            Download **m280bat.exe** below and see the [README](https://github.com/${{ github.repository }}#english) for instructions.
+          make_latest: true
